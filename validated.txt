@@ -1,0 +1,93 @@
+var layers = this.getOCGs();
+
+if (this.getField("Mounting").value == 1){
+var layername = "Top";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state = 1;	
+}
+}
+}
+
+if (this.getField("Mounting").value == 2){
+var layername = "Fascia";
+for (var i in layers){
+if (layers[i].name == layername){ 
+layers[i].state == 1;
+}
+}
+}
+
+if (this.getField("Infill").value == 1){
+var layername = "Picket";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state == 1;
+}
+}
+}
+
+if (this.getField("Infill").value == 2){
+var layername = "Glass";
+for (var i in layers){
+if (layers[i].name = layername){
+layers[i].state == 1;
+}
+}
+}
+
+
+var layers = this.getOCGs();
+
+
+for (var i in layers)
+    {
+    if (layers[i].name !="0")
+        {
+         layers[i].state = 0;   
+        }
+    }
+
+
+
+if ((this.getField("Mounting").value == 1)||(this.getField("Mounting").value == 2)){
+
+if ((this.getField("Mounting").value == 1)&&(this.getField("Mounting").value != 2)){
+var layername = "Top";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state = 1;	
+}
+}
+}
+
+else if((this.getField("Mounting").value == 2)&&(this.getField("Mounting").value != 1)){
+var layername = "Fascia";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state = 1;	
+}
+}
+}
+
+else if((this.getField("Infill").value == 1)||(this.getField("Infill").value == 2)){
+
+if ((this.getField("Infill").value == 1)&& (this.getField("Infill").value != 2)){
+var layername = "Picket";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state = 1;	
+}
+}
+}
+
+else if((this.getField("Infill").value == 2)&&(this.getField("Infill").value != 1)){
+var layername = "Glass";
+for (var i in layers){
+if (layers[i].name == layername){
+layers[i].state = 1;	
+}
+}
+}
+}
+}
