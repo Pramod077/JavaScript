@@ -1,0 +1,173 @@
+/* Compact, maintainable rewrite of original logic using helpers and maps */
+
+(function () {
+	// Field shortcut
+	var F = function(name){ return this.getField(name); }.bind(this);
+	var toNum = function(v){ return (typeof v === "number")? v : (+v||0); };
+
+	// Managed fields array
+	var managedFields = [
+		"Glass Type","InterLayer","CABLENET","PICKET","WIRE MESH","PERFORATED METAL",
+		"PMaterial","PFinish","PPassivation","LED COLOR","LED INTENSITY","LED ORIENTATION","LED LENS","WOODRAIL"
+	];
+
+	// Hide all managed fields
+	function hideAllFields(){
+		for (var i=0;i<managedFields.length;i++){
+			var f = F(managedFields[i]);
+			if (f) f.display = display.hidden;
+		}
+	}
+	// Show specific fields by name
+	function showFields(names){
+		for (var i=0;i<names.length;i++){
+			var f = F(names[i]);
+			if (f) f.display = display.visible;
+		}
+	}
+
+	// Layer management
+	var layers = this.getOCGs();
+	// Reset all layers to hidden
+	function resetLayers(){
+		for (var i in layers){
+			if (layers[i].name !== "0") layers[i].state = 0;
+		}
+	}
+	// Set a specific layer by name
+	function setLayerByName(name){
+		if (!name) return;
+		for (var i in layers){
+			if (layers[i].name === name){
+				layers[i].state = 1;
+				break;
+			}
+		}
+	}
+
+	// Maps for infill, top rail, hand rail, and pattern selections
+	var infillFieldMap = {
+		"glass": ["Glass Type","InterLayer"],
+		"perforated": ["PERFORATED METAL","PMaterial","PFinish","PPassivation"],
+		"mesh": ["WIRE MESH","PMaterial","PFinish","PPassivation"],
+		"none": [],
+		"multiline_fascia": ["PMaterial","PFinish","PPassivation"],
+		"multiline_top": ["PMaterial","PFinish","PPassivation"],
+		"picket": ["PICKET"],
+		"cablenet": ["CABLENET","PMaterial","PFinish","PPassivation"]
+	};
+	var infillLayerMap = {
+		1: "INFILL - GLASS SPIDER",
+		2: "INFILL - GLASS CLAMP",//Not used in BLADE DOUBLE POST DROP DOWN OPTIONS
+		3: "INFILL - PERF SPIDER",
+		4: "INFILL - PERF CLAMP",
+		5: "INFILL - MESH SPIDER",
+		6: "INFILL - MESH CLAMP",
+		7: "INFILL - MULTILINE - FASCIA",// used in BLADE DOUBLE POST DROP DOWN OPTIONS
+		8: "INFILL - MULTILINE - TOP",// used in BLADE DOUBLE POST DROP DOWN OPTIONS
+		9: "INFILL - PICKET",
+		10: "INFILL - CABLENET PANEL",
+		11: "INFILL - CABLENET CONTINUOUS"//Not used in BLADE DOUBLE POST DROP DOWN OPTIONS
+	};
+	var topRailLayerMap = {
+		1: "TOP RAIL - 2 DIA SS",
+		2: "TOP RAIL - 1.5 DIA SS",
+		3: "TOP RAIL - 1x2 SS",
+		4: "TOP RAIL - 2 DIA WOOD",
+		5: "TOP RAIL - iRAIL"
+	};
+	var handRailLayerMap = {
+		1: "HAND RAIL - 1.5 DIA SS",
+		2: "HAND RAIL - 2 DIA SS",
+		3: "HAND RAIL - 1.5 DIA WOOD",
+		4: "HAND RAIL - 2 DIA WOOD",
+		5: "HAND RAIL - iRAIL"
+	};
+	var perforatedPatternMap = {
+		1: "PP-PMRO-0610",
+		2: "PP-PMRO-1014",
+		3: "PP-PMRO-1217",
+		4: "PP-PMSQ-1013",
+		5: "PP-PMSL-0325",
+		6: "PP-PMSL-1122"
+	};
+	var wireMeshPatternMap = {
+		1: "WM-10",2: "WM-11",3: "WM-12",4: "WM-13",5: "WM-14",6: "WM-15",
+		7: "WM-17",8: "WM-19",9: "WM-20",10: "WM-21"
+	};
+
+	// Begin applying visibility and states
+	hideAllFields();
+	resetLayers();
+
+	// INFILL handling
+	var infillVal = toNum(this.getField("INFILL").value);
+	switch (infillVal){
+		case 1:
+		case 2:
+			showFields(infillFieldMap.glass);
+			break;
+		case 3:
+		case 4:
+			showFields(infillFieldMap.perforated);
+			break;
+		case 5:
+		case 6:
+			showFields(infillFieldMap.mesh);
+			break;
+		case 7:
+		case 8:
+			// none visible for these two according to original logic
+			break;
+		case 9:
+		case 10:
+			showFields(infillFieldMap.multiline_fascia);
+			break;
+		case 11:
+		case 12:
+			showFields(infillFieldMap.multiline_top);
+			break;
+		case 13:
+		case 14:
+			showFields(infillFieldMap.picket);
+			break;
+		case 15:
+		case 16:
+			showFields(infillFieldMap.cablenet);
+			break;
+		default:
+			// nothing
+	}
+	setLayerByName(infillLayerMap[infillVal]);
+
+	// TOP RAIL & HAND RAIL fields: LED fields visible when either top rail or hand rail ==5
+	var topRailVal = toNum(this.getField("TOP RAIL").value);
+	var handRailVal = toNum(this.getField("HAND RAIL").value);
+	if (topRailVal === 5 || handRailVal === 5){
+		showFields(["LED COLOR","LED INTENSITY","LED ORIENTATION","LED LENS"]);
+	}
+	// WOODRAIL visible when handrail is 3 or 4 or top rail is 4
+	if (handRailVal===3 || handRailVal===4 || topRailVal===4){
+		showFields(["WOODRAIL"]);
+	}
+
+	// Apply top rail & hand rail layer states
+	setLayerByName(topRailLayerMap[topRailVal]);
+	setLayerByName(handRailLayerMap[handRailVal]);
+
+	// Pattern-specific layers when perforated or mesh infill
+	if (infillVal===3 || infillVal===4){
+		var pmVal = toNum(this.getField("PERFORATED METAL").value);
+		setLayerByName(perforatedPatternMap[pmVal]);
+	}
+	if (infillVal===5 || infillVal===6){
+		var wmVal = toNum(this.getField("WIRE MESH").value);
+		setLayerByName(wireMeshPatternMap[wmVal]);
+	}
+
+	// MOUNTING layers
+	var mountingVal = toNum(this.getField("MOUNTING").value);
+	if (mountingVal === 1) setLayerByName("MOUNT TOP");
+	if (mountingVal === 2) setLayerByName("MOUNT FASCIA");
+
+})();
