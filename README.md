@@ -1,4 +1,4 @@
-A customized product portfolio is created using the user selection option. 
+A customised product portfolio is created using the user selection option. 
 
 As the user selects his or her choice options in the Acrobat PDF editor, the product image gets updated by hiding or showing selected features, i.e., according to drop-down options.
 
